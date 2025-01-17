@@ -5,17 +5,14 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import {Joi} from '@docusaurus/utils-validation';
+import {readDefaultCodeTranslationMessages} from '@docusaurus/theme-translations';
 import type {
   LoadContext,
   Plugin,
   OptionValidationContext,
-  ValidationResult,
 } from '@docusaurus/types';
 import type {PluginOptions} from '@docusaurus/plugin-ideal-image';
-import {Joi} from '@docusaurus/utils-validation';
-import {readDefaultCodeTranslationMessages} from '@docusaurus/theme-translations';
-
-import path from 'path';
 
 export default function pluginIdealImage(
   context: LoadContext,
@@ -29,11 +26,11 @@ export default function pluginIdealImage(
     name: 'docusaurus-plugin-ideal-image',
 
     getThemePath() {
-      return path.resolve(__dirname, '../lib/theme');
+      return '../lib/theme';
     },
 
     getTypeScriptThemePath() {
-      return path.resolve(__dirname, '../src/theme');
+      return '../src/theme';
     },
 
     getDefaultCodeTranslationMessages() {
@@ -56,13 +53,14 @@ export default function pluginIdealImage(
         module: {
           rules: [
             {
-              test: /\.(?:png|jpe?g|gif)$/i,
+              test: /\.(?:png|jpe?g)$/i,
               use: [
                 require.resolve('@docusaurus/lqip-loader'),
                 {
                   loader: require.resolve('@docusaurus/responsive-loader'),
                   options: {
-                    emitFile: !isServer, // don't emit for server-side rendering
+                    // Don't emit for server-side rendering
+                    emitFile: !isServer,
                     // eslint-disable-next-line global-require
                     adapter: require('@docusaurus/responsive-loader/sharp'),
                     name: 'assets/ideal-img/[name].[hash:hex:7].[width].[ext]',
@@ -81,8 +79,8 @@ export default function pluginIdealImage(
 export function validateOptions({
   validate,
   options,
-}: OptionValidationContext<PluginOptions>): ValidationResult<PluginOptions> {
-  const pluginOptionsSchema = Joi.object({
+}: OptionValidationContext<PluginOptions, PluginOptions>): PluginOptions {
+  const pluginOptionsSchema = Joi.object<PluginOptions>({
     disableInDev: Joi.boolean().default(true),
   }).unknown();
   return validate(pluginOptionsSchema, options);

@@ -5,97 +5,88 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import React from 'react';
-import Seo from '@theme/Seo';
+import React, {type ReactNode} from 'react';
+import clsx from 'clsx';
+import Translate from '@docusaurus/Translate';
+import Link from '@docusaurus/Link';
+import {HtmlClassNameProvider, ThemeClassNames} from '@docusaurus/theme-common';
+import {
+  BlogPostProvider,
+  useBlogPost,
+} from '@docusaurus/plugin-content-blog/client';
+import BlogPostPageMetadata from '@theme/BlogPostPage/Metadata';
 import BlogLayout from '@theme/BlogLayout';
 import ChangelogItem from '@theme/ChangelogItem';
-import BlogPostPaginator from '@theme/BlogPostPaginator';
-import type {Props} from '@theme/BlogPostPage';
-import {ThemeClassNames} from '@docusaurus/theme-common';
+import ChangelogPaginator from '@theme/ChangelogPaginator';
 import TOC from '@theme/TOC';
-import Link from '@docusaurus/Link';
+import type {Props} from '@theme/BlogPostPage';
+import type {BlogSidebar} from '@docusaurus/plugin-content-blog';
 
-// This page doesn't change anything. It's just swapping BlogPostItem with our
-// own ChangelogItem. We don't want to apply the swizzled item to the actual
-// blog.
-export default function BlogPostPage(props: Props): JSX.Element {
-  const {content: BlogPostContents, sidebar} = props;
-  const {assets, metadata} = BlogPostContents;
-  const {
-    title,
-    description,
-    nextItem,
-    prevItem,
-    date,
-    tags,
-    authors,
-    frontMatter,
-    // @ts-expect-error: we injected this
-    listPageLink,
-  } = metadata;
+function BackToIndexLink() {
+  const {metadata} = useBlogPost();
+  // @ts-expect-error: we injected this
+  const {listPageLink} = metadata;
+  return (
+    <Link to={listPageLink}>
+      <Translate id="changelog.backLink">← Back to index page</Translate>
+    </Link>
+  );
+}
+
+function ChangelogPageContent({
+  sidebar,
+  children,
+}: {
+  sidebar: BlogSidebar;
+  children: ReactNode;
+}): ReactNode {
+  const {metadata, toc} = useBlogPost();
+  const {nextItem, prevItem, frontMatter} = metadata;
   const {
     hide_table_of_contents: hideTableOfContents,
-    keywords,
     toc_min_heading_level: tocMinHeadingLevel,
     toc_max_heading_level: tocMaxHeadingLevel,
   } = frontMatter;
-
-  const image = assets.image ?? frontMatter.image;
-
   return (
     <BlogLayout
-      wrapperClassName={ThemeClassNames.wrapper.blogPages}
-      pageClassName={ThemeClassNames.page.blogPostPage}
       sidebar={sidebar}
       toc={
-        !hideTableOfContents &&
-        BlogPostContents.toc &&
-        BlogPostContents.toc.length > 0 ? (
+        !hideTableOfContents && toc.length > 0 ? (
           <TOC
-            toc={BlogPostContents.toc}
+            toc={toc}
             minHeadingLevel={tocMinHeadingLevel}
             maxHeadingLevel={tocMaxHeadingLevel}
           />
         ) : undefined
       }>
-      <Seo
-        title={title}
-        description={description}
-        keywords={keywords}
-        image={image}>
-        <meta property="og:type" content="article" />
-        <meta property="article:published_time" content={date} />
+      <BackToIndexLink />
 
-        {authors.some((author) => author.url) && (
-          <meta
-            property="article:author"
-            content={authors
-              .map((author) => author.url)
-              .filter(Boolean)
-              .join(',')}
-          />
-        )}
-        {tags.length > 0 && (
-          <meta
-            property="article:tag"
-            content={tags.map((tag) => tag.label).join(',')}
-          />
-        )}
-      </Seo>
-
-      <Link to={listPageLink}>← Back to index page</Link>
-
-      <ChangelogItem
-        frontMatter={frontMatter}
-        assets={assets}
-        metadata={metadata}
-        isBlogPostPage>
-        <BlogPostContents />
-      </ChangelogItem>
+      <ChangelogItem>{children}</ChangelogItem>
 
       {(nextItem || prevItem) && (
-        <BlogPostPaginator nextItem={nextItem} prevItem={prevItem} />
+        <ChangelogPaginator nextItem={nextItem} prevItem={prevItem} />
       )}
     </BlogLayout>
+  );
+}
+
+// This page doesn't change anything. It's just swapping BlogPostItem with our
+// own ChangelogItem. We don't want to apply the swizzled item to the actual
+// blog.
+export default function ChangelogPage(props: Props): ReactNode {
+  const ChangelogContent = props.content;
+  return (
+    <BlogPostProvider content={props.content} isBlogPostPage>
+      <HtmlClassNameProvider
+        className={clsx(
+          ThemeClassNames.wrapper.blogPages,
+          ThemeClassNames.page.blogPostPage,
+        )}>
+        <BlogPostPageMetadata />
+        <ChangelogPageContent sidebar={props.sidebar}>
+          <ChangelogContent />
+        </ChangelogPageContent>
+      </HtmlClassNameProvider>
+    </BlogPostProvider>
   );
 }

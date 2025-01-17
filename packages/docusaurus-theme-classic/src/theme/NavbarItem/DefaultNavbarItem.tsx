@@ -5,17 +5,13 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import React from 'react';
+import React, {type ReactNode} from 'react';
 import clsx from 'clsx';
-
 import NavbarNavLink from '@theme/NavbarItem/NavbarNavLink';
-
 import type {
   DesktopOrMobileNavBarItemProps,
   Props,
 } from '@theme/NavbarItem/DefaultNavbarItem';
-
-import {getInfimaActiveClassName} from '@theme/NavbarItem/utils';
 
 function DefaultNavbarItemDesktop({
   className,
@@ -28,6 +24,7 @@ function DefaultNavbarItemDesktop({
         isDropdownItem ? 'dropdown__link' : 'navbar__item navbar__link',
         className,
       )}
+      isDropdownLink={isDropdownItem}
       {...props}
     />
   );
@@ -41,7 +38,7 @@ function DefaultNavbarItemDesktop({
 
 function DefaultNavbarItemMobile({
   className,
-  isDropdownItem: _isDropdownItem,
+  isDropdownItem,
   ...props
 }: DesktopOrMobileNavBarItemProps) {
   return (
@@ -53,15 +50,16 @@ function DefaultNavbarItemMobile({
 
 export default function DefaultNavbarItem({
   mobile = false,
-  position: _position, // Need to destructure position from props so that it doesn't get passed on.
+  position, // Need to destructure position from props so that it doesn't get passed on.
   ...props
-}: Props): JSX.Element {
+}: Props): ReactNode {
   const Comp = mobile ? DefaultNavbarItemMobile : DefaultNavbarItemDesktop;
   return (
     <Comp
       {...props}
       activeClassName={
-        props.activeClassName ?? getInfimaActiveClassName(mobile)
+        props.activeClassName ??
+        (mobile ? 'menu__link--active' : 'navbar__link--active')
       }
     />
   );

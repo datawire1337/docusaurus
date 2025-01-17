@@ -7,18 +7,22 @@
 
 import path from 'path';
 import {getThemeComponents, readComponentNames} from '../components';
-import type {SwizzleConfig} from '@docusaurus/types';
 import {Components} from './testUtils';
+import type {SwizzleConfig} from '@docusaurus/types';
 
 const FixtureThemePath = path.join(__dirname, '__fixtures__/theme');
 
 describe('readComponentNames', () => {
-  test('read theme', async () => {
+  it('read theme', async () => {
     await expect(readComponentNames(FixtureThemePath)).resolves.toEqual([
       Components.ComponentInFolder,
       Components.ComponentInSubFolder,
       Components.Sibling,
       Components.FirstLevelComponent,
+      Components.JsComponent,
+      Components.NoIndexComp1,
+      Components.NoIndexComp2,
+      Components.NoIndexSubComp,
     ]);
   });
 });
@@ -45,7 +49,7 @@ describe('getThemeComponents', () => {
     },
   };
 
-  test('read name', async () => {
+  it('read name', async () => {
     const themeComponents = await getThemeComponents({
       themeName,
       themePath,
@@ -54,7 +58,7 @@ describe('getThemeComponents', () => {
     expect(themeComponents.themeName).toEqual(themeName);
   });
 
-  test('read all', async () => {
+  it('read all', async () => {
     const themeComponents = await getThemeComponents({
       themeName,
       themePath,
@@ -66,10 +70,16 @@ describe('getThemeComponents', () => {
       Components.ComponentInSubFolder,
       Components.Sibling,
       Components.FirstLevelComponent,
+      Components.JsComponent,
+      Components.NoIndex,
+      Components.NoIndexComp1,
+      Components.NoIndexComp2,
+      Components.NoIndexSub,
+      Components.NoIndexSubComp,
     ]);
   });
 
-  test('getConfig', async () => {
+  it('getConfig', async () => {
     const themeComponents = await getThemeComponents({
       themeName,
       themePath,
@@ -77,8 +87,8 @@ describe('getThemeComponents', () => {
     });
     expect(themeComponents.getConfig(Components.ComponentInFolder))
       .toMatchInlineSnapshot(`
-      Object {
-        "actions": Object {
+      {
+        "actions": {
           "eject": "unsafe",
           "wrap": "safe",
         },
@@ -87,8 +97,8 @@ describe('getThemeComponents', () => {
     `);
     expect(themeComponents.getConfig(Components.ComponentInSubFolder))
       .toMatchInlineSnapshot(`
-      Object {
-        "actions": Object {
+      {
+        "actions": {
           "eject": "safe",
           "wrap": "unsafe",
         },
@@ -96,8 +106,8 @@ describe('getThemeComponents', () => {
     `);
     expect(themeComponents.getConfig(Components.FirstLevelComponent))
       .toMatchInlineSnapshot(`
-      Object {
-        "actions": Object {
+      {
+        "actions": {
           "eject": "unsafe",
           "wrap": "unsafe",
         },
@@ -112,24 +122,24 @@ describe('getThemeComponents', () => {
     );
   });
 
-  test('getDescription', async () => {
+  it('getDescription', async () => {
     const themeComponents = await getThemeComponents({
       themeName,
       themePath,
       swizzleConfig,
     });
-    expect(
-      themeComponents.getDescription(Components.ComponentInFolder),
-    ).toEqual('ComponentInFolder description');
+    expect(themeComponents.getDescription(Components.ComponentInFolder)).toBe(
+      'ComponentInFolder description',
+    );
     expect(
       themeComponents.getDescription(Components.ComponentInSubFolder),
-    ).toEqual('N/A');
-    expect(
-      themeComponents.getDescription(Components.FirstLevelComponent),
-    ).toEqual('N/A');
+    ).toBe('N/A');
+    expect(themeComponents.getDescription(Components.FirstLevelComponent)).toBe(
+      'N/A',
+    );
   });
 
-  test('getActionStatus', async () => {
+  it('getActionStatus', async () => {
     const themeComponents = await getThemeComponents({
       themeName,
       themePath,
@@ -137,27 +147,60 @@ describe('getThemeComponents', () => {
     });
     expect(
       themeComponents.getActionStatus(Components.ComponentInFolder, 'wrap'),
-    ).toEqual('safe');
+    ).toBe('safe');
     expect(
       themeComponents.getActionStatus(Components.ComponentInFolder, 'eject'),
-    ).toEqual('unsafe');
+    ).toBe('unsafe');
 
     expect(
       themeComponents.getActionStatus(Components.ComponentInSubFolder, 'wrap'),
-    ).toEqual('unsafe');
+    ).toBe('unsafe');
     expect(
       themeComponents.getActionStatus(Components.ComponentInSubFolder, 'eject'),
-    ).toEqual('safe');
+    ).toBe('safe');
 
     expect(
       themeComponents.getActionStatus(Components.FirstLevelComponent, 'wrap'),
-    ).toEqual('unsafe');
+    ).toBe('unsafe');
     expect(
       themeComponents.getActionStatus(Components.FirstLevelComponent, 'eject'),
-    ).toEqual('unsafe');
+    ).toBe('unsafe');
+
+    expect(
+      themeComponents.getActionStatus(Components.NoIndexComp1, 'wrap'),
+    ).toBe('unsafe');
+    expect(
+      themeComponents.getActionStatus(Components.NoIndexComp1, 'eject'),
+    ).toBe('unsafe');
+    expect(
+      themeComponents.getActionStatus(Components.NoIndexComp2, 'wrap'),
+    ).toBe('unsafe');
+    expect(
+      themeComponents.getActionStatus(Components.NoIndexComp2, 'eject'),
+    ).toBe('unsafe');
+    expect(
+      themeComponents.getActionStatus(Components.NoIndexSubComp, 'wrap'),
+    ).toBe('unsafe');
+    expect(
+      themeComponents.getActionStatus(Components.NoIndexSubComp, 'eject'),
+    ).toBe('unsafe');
+
+    // Intermediate folders are not real components: forbidden to wrap!
+    expect(themeComponents.getActionStatus(Components.NoIndex, 'wrap')).toBe(
+      'forbidden',
+    );
+    expect(themeComponents.getActionStatus(Components.NoIndex, 'eject')).toBe(
+      'unsafe',
+    );
+    expect(themeComponents.getActionStatus(Components.NoIndexSub, 'wrap')).toBe(
+      'forbidden',
+    );
+    expect(
+      themeComponents.getActionStatus(Components.NoIndexSub, 'eject'),
+    ).toBe('unsafe');
   });
 
-  test('isSafeAction', async () => {
+  it('isSafeAction', async () => {
     const themeComponents = await getThemeComponents({
       themeName,
       themePath,
@@ -165,40 +208,40 @@ describe('getThemeComponents', () => {
     });
     expect(
       themeComponents.isSafeAction(Components.ComponentInFolder, 'wrap'),
-    ).toEqual(true);
+    ).toBe(true);
     expect(
       themeComponents.isSafeAction(Components.ComponentInFolder, 'eject'),
-    ).toEqual(false);
+    ).toBe(false);
 
     expect(
       themeComponents.isSafeAction(Components.ComponentInSubFolder, 'wrap'),
-    ).toEqual(false);
+    ).toBe(false);
     expect(
       themeComponents.isSafeAction(Components.ComponentInSubFolder, 'eject'),
-    ).toEqual(true);
+    ).toBe(true);
 
     expect(
       themeComponents.isSafeAction(Components.FirstLevelComponent, 'wrap'),
-    ).toEqual(false);
+    ).toBe(false);
     expect(
       themeComponents.isSafeAction(Components.FirstLevelComponent, 'eject'),
-    ).toEqual(false);
+    ).toBe(false);
   });
 
-  test('hasAnySafeAction', async () => {
+  it('hasAnySafeAction', async () => {
     const themeComponents = await getThemeComponents({
       themeName,
       themePath,
       swizzleConfig,
     });
-    expect(
-      themeComponents.hasAnySafeAction(Components.ComponentInFolder),
-    ).toEqual(true);
+    expect(themeComponents.hasAnySafeAction(Components.ComponentInFolder)).toBe(
+      true,
+    );
     expect(
       themeComponents.hasAnySafeAction(Components.ComponentInSubFolder),
-    ).toEqual(true);
+    ).toBe(true);
     expect(
       themeComponents.hasAnySafeAction(Components.FirstLevelComponent),
-    ).toEqual(false);
+    ).toBe(false);
   });
 });

@@ -4,12 +4,11 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-/* eslint-disable import/no-extraneous-dependencies */
 
-const path = require('path');
-const fs = require('fs-extra');
-const pluginContentBlog = require('@docusaurus/plugin-content-blog');
-const {aliasedSitePath, docuHash, normalizeUrl} = require('@docusaurus/utils');
+import path from 'path';
+import fs from 'fs-extra';
+import pluginContentBlog from '@docusaurus/plugin-content-blog';
+import {aliasedSitePath, docuHash, normalizeUrl} from '@docusaurus/utils';
 
 /**
  * Multiple versions may be published on the same day, causing the order to be
@@ -37,7 +36,7 @@ function processSection(section) {
     .trim()
     .replace('running_woman', 'running');
 
-  let authors = content.match(/## Committers: \d+.*/ms);
+  let authors = content.match(/## Committers: \d.*/s);
   if (authors) {
     authors = authors[0]
       .match(/- .*/g)
@@ -68,6 +67,8 @@ function processSection(section) {
   return {
     title: title.replace(/ \(.*\)/, ''),
     content: `---
+mdx:
+ format: md
 date: ${`${date}T${hour}:00`}${
       authors
         ? `
@@ -89,7 +90,7 @@ ${content.replace(/####/g, '##')}`,
  * @param {import('@docusaurus/types').LoadContext} context
  * @returns {import('@docusaurus/types').Plugin}
  */
-async function ChangelogPlugin(context, options) {
+export default async function ChangelogPlugin(context, options) {
   const generateDir = path.join(context.siteDir, 'changelog/source');
   const blogPlugin = await pluginContentBlog.default(context, {
     ...options,
@@ -105,7 +106,7 @@ async function ChangelogPlugin(context, options) {
     async loadContent() {
       const fileContent = await fs.readFile(changelogPath, 'utf-8');
       const sections = fileContent
-        .split(/(?=\n## )/ms)
+        .split(/(?=\n## )/)
         .map(processSection)
         .filter(Boolean);
       await Promise.all(
@@ -137,7 +138,8 @@ async function ChangelogPlugin(context, options) {
         'default',
       );
       // Redirect the metadata path to our folder
-      config.module.rules[0].use[1].options.metadataPath = (mdxPath) => {
+      const mdxLoader = config.module.rules[0].use[0];
+      mdxLoader.options.metadataPath = (mdxPath) => {
         // Note that metadataPath must be the same/in-sync as
         // the path from createData for each MDX.
         const aliasedPath = aliasedSitePath(mdxPath, context.siteDir);
@@ -146,7 +148,7 @@ async function ChangelogPlugin(context, options) {
       return config;
     },
     getThemePath() {
-      return path.join(__dirname, './theme');
+      return './theme';
     },
     getPathsToWatch() {
       // Don't watch the generated dir
@@ -155,6 +157,4 @@ async function ChangelogPlugin(context, options) {
   };
 }
 
-ChangelogPlugin.validateOptions = pluginContentBlog.validateOptions;
-
-module.exports = ChangelogPlugin;
+export const {validateOptions} = pluginContentBlog;

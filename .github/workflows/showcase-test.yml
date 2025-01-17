@@ -4,8 +4,16 @@ on:
   pull_request:
     branches:
       - main
+      - docusaurus-v**
     paths:
       - website/src/data/**
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   validate-config:
@@ -13,13 +21,14 @@ jobs:
     timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - name: Set up Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
         with:
-          node-version: '16'
+          node-version: lts/*
           cache: yarn
       - name: Installation
-        run: yarn
+        run: yarn || yarn || yarn
       - name: Test
         run: yarn test website/src/data/__tests__/user.test.ts

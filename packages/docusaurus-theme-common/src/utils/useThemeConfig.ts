@@ -8,6 +8,7 @@
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import type {PrismTheme} from 'prism-react-renderer';
 import type {DeepPartial} from 'utility-types';
+import type {MagicCommentConfig} from './codeBlockUtils';
 
 export type DocsVersionPersistence = 'localStorage' | 'none';
 
@@ -17,21 +18,25 @@ export type NavbarItem = {
   items?: NavbarItem[];
   label?: string;
   position?: 'left' | 'right';
-} & Record<string, unknown>;
+} & {[key: string]: unknown};
 
-export type NavbarLogo = {
+type BaseLogo = {
+  alt?: string;
   src: string;
   srcDark?: string;
+  href?: string;
   width?: string | number;
   height?: string | number;
-  href?: string;
   target?: string;
-  alt?: string;
+  style?: object;
+  className?: string;
 };
+
+export type NavbarLogo = BaseLogo;
 
 // TODO improve
 export type Navbar = {
-  style: 'dark' | 'primary';
+  style?: 'dark' | 'primary';
   hideOnScroll: boolean;
   title?: string;
   items: NavbarItem[];
@@ -53,38 +58,38 @@ export type AnnouncementBarConfig = {
 };
 
 export type PrismConfig = {
-  theme?: PrismTheme;
+  theme: PrismTheme;
   darkTheme?: PrismTheme;
   defaultLanguage?: string;
-  additionalLanguages?: string[];
+  additionalLanguages: string[];
+  magicComments: MagicCommentConfig[];
 };
 
 export type FooterLinkItem = {
   label?: string;
+  className?: string;
   to?: string;
   href?: string;
   html?: string;
   prependBaseUrlToHref?: string;
+} & {[key: string]: unknown};
+
+export type FooterColumnItem = {
+  title: string | null;
+  className?: string;
+  items: FooterLinkItem[];
 };
+
+export type FooterLogo = BaseLogo;
 
 export type FooterBase = {
   style: 'light' | 'dark';
-  logo?: {
-    alt?: string;
-    src?: string;
-    srcDark?: string;
-    width?: string | number;
-    height?: string | number;
-    href?: string;
-  };
+  logo?: FooterLogo;
   copyright?: string;
 };
 
 export type MultiColumnFooter = FooterBase & {
-  links: Array<{
-    title: string | null;
-    items: FooterLinkItem[];
-  }>;
+  links: FooterColumnItem[];
 };
 
 export type SimpleFooter = FooterBase & {
@@ -102,6 +107,16 @@ export type TableOfContents = {
 export type ThemeConfig = {
   docs: {
     versionPersistence: DocsVersionPersistence;
+    sidebar: {
+      hideable: boolean;
+      autoCollapseCategories: boolean;
+    };
+  };
+
+  blog: {
+    sidebar: {
+      groupByYear: boolean;
+    };
   };
 
   // TODO we should complete this theme config type over time
@@ -114,17 +129,17 @@ export type ThemeConfig = {
   announcementBar?: AnnouncementBarConfig;
   prism: PrismConfig;
   footer?: Footer;
-  hideableSidebar: boolean;
-  autoCollapseSidebarCategories: boolean;
   image?: string;
-  metadata: Array<Record<string, string>>;
-  sidebarCollapsible: boolean;
+  metadata: {[key: string]: string}[];
   tableOfContents: TableOfContents;
 };
 
 // User-provided theme config, unnormalized
 export type UserThemeConfig = DeepPartial<ThemeConfig>;
 
+/**
+ * A convenient/more semantic way to get theme config from context.
+ */
 export function useThemeConfig(): ThemeConfig {
   return useDocusaurusContext().siteConfig.themeConfig as ThemeConfig;
 }

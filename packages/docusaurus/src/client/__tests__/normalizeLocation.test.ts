@@ -5,16 +5,26 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import {jest} from '@jest/globals';
 import normalizeLocation from '../normalizeLocation';
+import type {Location} from 'history';
 
 describe('normalizeLocation', () => {
-  test('rewrite locations with index.html', () => {
+  it('rewrites locations with index.html', () => {
+    expect(
+      normalizeLocation({
+        pathname: '/index.html',
+      } as Location),
+    ).toEqual({
+      pathname: '/',
+    });
+
     expect(
       normalizeLocation({
         pathname: '/docs/introduction/index.html',
         search: '?search=foo',
         hash: '#features',
-      }),
+      } as Location),
     ).toEqual({
       pathname: '/docs/introduction',
       search: '?search=foo',
@@ -26,7 +36,7 @@ describe('normalizeLocation', () => {
         pathname: '/index.html',
         search: '',
         hash: '#features',
-      }),
+      } as Location),
     ).toEqual({
       pathname: '/',
       search: '',
@@ -34,7 +44,34 @@ describe('normalizeLocation', () => {
     });
   });
 
-  test('untouched pathnames', () => {
+  it('removes html extension', () => {
+    expect(
+      normalizeLocation({
+        pathname: '/docs/installation.html',
+      } as Location),
+    ).toEqual({
+      pathname: '/docs/installation',
+    });
+    expect(
+      normalizeLocation({
+        pathname: '/docs/introduction/foo.html',
+        search: '',
+        hash: '#bar',
+      } as Location),
+    ).toEqual({
+      pathname: '/docs/introduction/foo',
+      search: '',
+      hash: '#bar',
+    });
+  });
+
+  it('does not strip extension if the route location has one', () => {
+    expect(normalizeLocation({pathname: '/page.html'} as Location)).toEqual({
+      pathname: '/page.html',
+    });
+  });
+
+  it('leaves pathnames untouched', () => {
     const replaceMock = jest.spyOn(String.prototype, 'replace');
 
     expect(
@@ -42,7 +79,7 @@ describe('normalizeLocation', () => {
         pathname: '/docs/introduction',
         search: '',
         hash: '#features',
-      }),
+      } as Location),
     ).toEqual({
       pathname: '/docs/introduction',
       search: '',
@@ -55,30 +92,18 @@ describe('normalizeLocation', () => {
         pathname: '/docs/introduction',
         search: '',
         hash: '#features',
-      }),
+      } as Location),
     ).toEqual({
       pathname: '/docs/introduction',
       search: '',
       hash: '#features',
     });
-    expect(replaceMock).toBeCalledTimes(1);
-
-    expect(
-      normalizeLocation({
-        pathname: '/docs/introduction/foo.html',
-        search: '',
-        hash: '#bar',
-      }),
-    ).toEqual({
-      pathname: '/docs/introduction/foo.html',
-      search: '',
-      hash: '#bar',
-    });
+    expect(replaceMock).toHaveBeenCalledTimes(1);
 
     expect(
       normalizeLocation({
         pathname: '/',
-      }),
+      } as Location),
     ).toEqual({
       pathname: '/',
     });

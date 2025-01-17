@@ -5,15 +5,14 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import React, {useEffect, useState} from 'react';
+import React, {type ReactNode, useEffect, useState} from 'react';
 import clsx from 'clsx';
 import Color from 'color';
-import CodeBlock from '@theme/CodeBlock';
-import Admonition from '@theme/Admonition';
 import Link from '@docusaurus/Link';
 import Translate from '@docusaurus/Translate';
 import {useColorMode} from '@docusaurus/theme-common';
-
+import CodeBlock from '@theme/CodeBlock';
+import Admonition from '@theme/Admonition';
 import {
   type ColorState,
   COLOR_SHADES,
@@ -34,8 +33,11 @@ function wcagContrast(foreground: string, background: string) {
   return contrast > 7 ? 'AAA 🏅' : contrast > 4.5 ? 'AA 👍' : 'Fail 🔴';
 }
 
-export default function ColorGenerator(): JSX.Element {
-  const {isDarkTheme, setDarkTheme, setLightTheme} = useColorMode();
+export default function ColorGenerator(): ReactNode {
+  const {colorMode, setColorMode} = useColorMode();
+
+  const isDarkTheme = colorMode === 'dark';
+
   const DEFAULT_PRIMARY_COLOR = isDarkTheme
     ? DARK_PRIMARY_COLOR
     : LIGHT_PRIMARY_COLOR;
@@ -57,7 +59,9 @@ export default function ColorGenerator(): JSX.Element {
 
   // Switch modes -> update state by stored values
   useEffect(() => {
-    const storedValues: ColorState = JSON.parse(storage.get() ?? '{}');
+    const storedValues = JSON.parse(
+      storage.get() ?? '{}',
+    ) as Partial<ColorState>;
     setInputColor(storedValues.baseColor ?? DEFAULT_PRIMARY_COLOR);
     setBaseColor(storedValues.baseColor ?? DEFAULT_PRIMARY_COLOR);
     setBackground(storedValues.background ?? DEFAULT_BACKGROUND_COLOR);
@@ -131,13 +135,7 @@ export default function ColorGenerator(): JSX.Element {
         <button
           type="button"
           className="clean-btn button button--primary margin-left--md"
-          onClick={() => {
-            if (isDarkTheme) {
-              setLightTheme();
-            } else {
-              setDarkTheme();
-            }
-          }}>
+          onClick={() => setColorMode(isDarkTheme ? 'light' : 'dark')}>
           <Translate
             id="colorGenerator.inputs.modeToggle.label"
             values={{
@@ -254,7 +252,7 @@ export default function ColorGenerator(): JSX.Element {
                             setShades({
                               ...shades,
                               [variableName]: {
-                                ...shades[variableName],
+                                ...shades[variableName]!,
                                 adjustmentInput: event.target.value,
                                 adjustment: Number.isNaN(newValue)
                                   ? adjustment
@@ -282,6 +280,7 @@ export default function ColorGenerator(): JSX.Element {
       <p>
         <Translate
           id="colorGenerator.text"
+          // eslint-disable-next-line @docusaurus/no-untranslated-text
           values={{cssPath: <code>src/css/custom.css</code>}}>
           {'Replace the variables in {cssPath} with these new variables.'}
         </Translate>

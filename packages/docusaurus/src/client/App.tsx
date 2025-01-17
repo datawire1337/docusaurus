@@ -5,33 +5,50 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import React from 'react';
+import React, {type ReactNode} from 'react';
+import '@generated/client-modules';
 
 import routes from '@generated/routes';
-import renderRoutes from './exports/renderRoutes';
-import {BrowserContextProvider} from './exports/browserContext';
-import {DocusaurusContextProvider} from './exports/docusaurusContext';
-import PendingNavigation from './PendingNavigation';
-import BaseUrlIssueBanner from './baseUrlIssueBanner/BaseUrlIssueBanner';
+import {useLocation} from '@docusaurus/router';
+import renderRoutes from '@docusaurus/renderRoutes';
 import Root from '@theme/Root';
-
-import './client-lifecycles-dispatcher';
+import SiteMetadata from '@theme/SiteMetadata';
+import normalizeLocation from './normalizeLocation';
+import {BrowserContextProvider} from './browserContext';
+import {DocusaurusContextProvider} from './docusaurusContext';
+import PendingNavigation from './PendingNavigation';
+import BaseUrlIssueBanner from './BaseUrlIssueBanner';
+import SiteMetadataDefaults from './SiteMetadataDefaults';
 
 // TODO, quick fix for CSS insertion order
+// eslint-disable-next-line import/order
 import ErrorBoundary from '@docusaurus/ErrorBoundary';
-import Error from '@theme/Error';
+import HasHydratedDataAttribute from './hasHydratedDataAttribute';
 
-export default function App(): JSX.Element {
+const routesElement = renderRoutes(routes);
+
+function AppNavigation() {
+  const location = useLocation();
+  const normalizedLocation = normalizeLocation(location);
   return (
-    <ErrorBoundary fallback={Error}>
+    <PendingNavigation location={normalizedLocation}>
+      {routesElement}
+    </PendingNavigation>
+  );
+}
+
+export default function App(): ReactNode {
+  return (
+    <ErrorBoundary>
       <DocusaurusContextProvider>
         <BrowserContextProvider>
           <Root>
+            <SiteMetadataDefaults />
+            <SiteMetadata />
             <BaseUrlIssueBanner />
-            <PendingNavigation routes={routes} delay={1000}>
-              {renderRoutes(routes)}
-            </PendingNavigation>
+            <AppNavigation />
           </Root>
+          <HasHydratedDataAttribute />
         </BrowserContextProvider>
       </DocusaurusContextProvider>
     </ErrorBoundary>

@@ -5,12 +5,13 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import {jest} from '@jest/globals';
 import path from 'path';
 import fs from 'fs-extra';
-import {ThemePath, createTempSiteDir, Components} from './testUtils';
 import tree from 'tree-node-cli';
-import swizzle from '../index';
 import {escapePath, Globby, posixPath} from '@docusaurus/utils';
+import {ThemePath, createTempSiteDir, Components} from './testUtils';
+import {swizzle} from '../index';
 
 const FixtureThemeName = 'fixture-theme-name';
 
@@ -27,7 +28,7 @@ async function createTestSiteConfig(siteDir: string) {
 module.exports = {
   title: 'My Site',
   tagline: 'Dinosaurs are cool',
-  url: 'https://your-docusaurus-test-site.com',
+  url: 'https://your-docusaurus-site.example.com',
   baseUrl: '/',
   themes: [
     function fixtureTheme() {
@@ -54,15 +55,17 @@ class MockExitError extends Error {
 }
 
 function createExitMock() {
-  let mock: jest.SpyInstance;
+  let mock: jest.SpyInstance<(code?: number) => never>;
 
+  // eslint-disable-next-line jest/require-top-level-describe
   beforeEach(async () => {
     mock = jest.spyOn(process, 'exit').mockImplementation((code) => {
-      throw new MockExitError(code as number);
-    });
+      throw new MockExitError(code!);
+    }) as jest.SpyInstance<(code?: number) => never>;
   });
+  // eslint-disable-next-line jest/require-top-level-describe
   afterEach(async () => {
-    mock?.mockRestore();
+    mock.mockRestore();
   });
 
   return {
@@ -88,7 +91,7 @@ async function createTestSite() {
     const siteThemePathPosix = posixPath(siteThemePath);
     expect(tree(siteThemePathPosix)).toMatchSnapshot('theme dir tree');
 
-    const files = Globby.sync(siteThemePathPosix)
+    const files = (await Globby(siteThemePathPosix))
       .map((file) => path.posix.relative(siteThemePathPosix, file))
       .sort();
 
@@ -108,10 +111,11 @@ async function createTestSite() {
     component: string;
     typescript?: boolean;
   }) {
-    return swizzleWithExit(siteDir, FixtureThemeName, component, {
+    return swizzleWithExit(FixtureThemeName, component, siteDir, {
       wrap: true,
       danger: true,
       typescript,
+      javascript: !typescript,
     });
   }
 
@@ -122,10 +126,11 @@ async function createTestSite() {
     component: string;
     typescript?: boolean;
   }) {
-    return swizzleWithExit(siteDir, FixtureThemeName, component, {
+    return swizzleWithExit(FixtureThemeName, component, siteDir, {
       eject: true,
       danger: true,
       typescript,
+      javascript: !typescript,
     });
   }
 
@@ -141,7 +146,7 @@ async function createTestSite() {
 describe('swizzle wrap', () => {
   const exitMock = createExitMock();
 
-  test(`${Components.FirstLevelComponent} JS`, async () => {
+  it(`${Components.FirstLevelComponent} JS`, async () => {
     const {snapshotThemeDir, testWrap} = await createTestSite();
     await testWrap({
       component: Components.FirstLevelComponent,
@@ -150,7 +155,7 @@ describe('swizzle wrap', () => {
     await snapshotThemeDir();
   });
 
-  test(`${Components.FirstLevelComponent} TS`, async () => {
+  it(`${Components.FirstLevelComponent} TS`, async () => {
     const {snapshotThemeDir, testWrap} = await createTestSite();
     await testWrap({
       component: Components.FirstLevelComponent,
@@ -159,7 +164,7 @@ describe('swizzle wrap', () => {
     await snapshotThemeDir();
   });
 
-  test(`${Components.ComponentInFolder} JS`, async () => {
+  it(`${Components.ComponentInFolder} JS`, async () => {
     const {snapshotThemeDir, testWrap} = await createTestSite();
     await testWrap({
       component: Components.ComponentInFolder,
@@ -168,7 +173,7 @@ describe('swizzle wrap', () => {
     await snapshotThemeDir();
   });
 
-  test(`${Components.ComponentInFolder} TS`, async () => {
+  it(`${Components.ComponentInFolder} TS`, async () => {
     const {snapshotThemeDir, testWrap} = await createTestSite();
     await testWrap({
       component: Components.ComponentInFolder,
@@ -178,7 +183,7 @@ describe('swizzle wrap', () => {
     await snapshotThemeDir();
   });
 
-  test(`${Components.ComponentInSubFolder} JS`, async () => {
+  it(`${Components.ComponentInSubFolder} JS`, async () => {
     const {snapshotThemeDir, testWrap} = await createTestSite();
     await testWrap({
       component: Components.ComponentInSubFolder,
@@ -187,7 +192,7 @@ describe('swizzle wrap', () => {
     await snapshotThemeDir();
   });
 
-  test(`${Components.ComponentInSubFolder} TS`, async () => {
+  it(`${Components.ComponentInSubFolder} TS`, async () => {
     const {snapshotThemeDir, testWrap} = await createTestSite();
     await testWrap({
       component: Components.ComponentInSubFolder,
@@ -197,7 +202,7 @@ describe('swizzle wrap', () => {
     await snapshotThemeDir();
   });
 
-  test(`${Components.Sibling} JS`, async () => {
+  it(`${Components.Sibling} JS`, async () => {
     const {snapshotThemeDir, testWrap} = await createTestSite();
     await testWrap({
       component: Components.Sibling,
@@ -206,7 +211,7 @@ describe('swizzle wrap', () => {
     await snapshotThemeDir();
   });
 
-  test(`${Components.Sibling} TS`, async () => {
+  it(`${Components.Sibling} TS`, async () => {
     const {snapshotThemeDir, testWrap} = await createTestSite();
     await testWrap({
       component: Components.Sibling,
@@ -220,7 +225,7 @@ describe('swizzle wrap', () => {
 describe('swizzle eject', () => {
   const exitMock = createExitMock();
 
-  test(`${Components.FirstLevelComponent} JS`, async () => {
+  it(`${Components.FirstLevelComponent} JS`, async () => {
     const {snapshotThemeDir, testEject} = await createTestSite();
     await testEject({
       component: Components.FirstLevelComponent,
@@ -229,7 +234,7 @@ describe('swizzle eject', () => {
     await snapshotThemeDir();
   });
 
-  test(`${Components.FirstLevelComponent} TS`, async () => {
+  it(`${Components.FirstLevelComponent} TS`, async () => {
     const {snapshotThemeDir, testEject} = await createTestSite();
     await testEject({
       component: Components.FirstLevelComponent,
@@ -238,7 +243,7 @@ describe('swizzle eject', () => {
     await snapshotThemeDir();
   });
 
-  test(`${Components.ComponentInFolder} JS`, async () => {
+  it(`${Components.ComponentInFolder} JS`, async () => {
     const {snapshotThemeDir, testEject} = await createTestSite();
     await testEject({
       component: Components.ComponentInFolder,
@@ -247,7 +252,7 @@ describe('swizzle eject', () => {
     await snapshotThemeDir();
   });
 
-  test(`${Components.ComponentInFolder} TS`, async () => {
+  it(`${Components.ComponentInFolder} TS`, async () => {
     const {snapshotThemeDir, testEject} = await createTestSite();
     await testEject({
       component: Components.ComponentInFolder,
@@ -257,7 +262,7 @@ describe('swizzle eject', () => {
     await snapshotThemeDir();
   });
 
-  test(`${Components.ComponentInSubFolder} JS`, async () => {
+  it(`${Components.ComponentInSubFolder} JS`, async () => {
     const {snapshotThemeDir, testEject} = await createTestSite();
     await testEject({
       component: Components.ComponentInSubFolder,
@@ -266,7 +271,7 @@ describe('swizzle eject', () => {
     await snapshotThemeDir();
   });
 
-  test(`${Components.ComponentInSubFolder} TS`, async () => {
+  it(`${Components.ComponentInSubFolder} TS`, async () => {
     const {snapshotThemeDir, testEject} = await createTestSite();
     await testEject({
       component: Components.ComponentInSubFolder,
@@ -276,7 +281,7 @@ describe('swizzle eject', () => {
     await snapshotThemeDir();
   });
 
-  test(`${Components.Sibling} JS`, async () => {
+  it(`${Components.Sibling} JS`, async () => {
     const {snapshotThemeDir, testEject} = await createTestSite();
     await testEject({
       component: Components.Sibling,
@@ -285,7 +290,7 @@ describe('swizzle eject', () => {
     await snapshotThemeDir();
   });
 
-  test(`${Components.Sibling} TS`, async () => {
+  it(`${Components.Sibling} TS`, async () => {
     const {snapshotThemeDir, testEject} = await createTestSite();
     await testEject({
       component: Components.Sibling,

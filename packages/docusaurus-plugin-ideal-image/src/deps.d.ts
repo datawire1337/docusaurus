@@ -12,8 +12,13 @@
  * Note: the original type definition is WRONG. getIcon & getMessage receive
  * full state object.
  */
-declare module '@endiliey/react-ideal-image' {
-  import type {ComponentProps, ComponentType, CSSProperties} from 'react';
+declare module '@slorber/react-ideal-image' {
+  import type {
+    ComponentProps,
+    ComponentType,
+    CSSProperties,
+    ReactNode,
+  } from 'react';
 
   export type LoadingState = 'initial' | 'loading' | 'loaded' | 'error';
 
@@ -33,16 +38,17 @@ declare module '@endiliey/react-ideal-image' {
     | 'noicon'
     | 'offline';
 
-  export interface SrcType {
+  export type SrcType = {
     width: number;
     src?: string;
     size?: number;
     format?: 'webp' | 'jpeg' | 'png' | 'gif';
-  }
+  };
 
   type ThemeKey = 'placeholder' | 'img' | 'icon' | 'noscript';
 
-  export interface ImageProps extends ComponentProps<'img'> {
+  export interface ImageProps
+    extends Omit<ComponentProps<'img'>, 'srcSet' | 'placeholder'> {
     /**
      * This function decides what icon to show based on the current state of the
      * component.
@@ -68,7 +74,7 @@ declare module '@endiliey/react-ideal-image' {
      * from material design, Implemented as React components with the SVG
      * element. You can customize icons
      */
-    icons?: Partial<Record<IconKey, ComponentType>>;
+    icons?: Partial<{[icon in IconKey]: ComponentType}>;
     /**
      * This prop takes one of the 2 options, xhr and image.
      * Read more about it:
@@ -102,7 +108,7 @@ declare module '@endiliey/react-ideal-image' {
      * inline styles, but it is also possible to use CSS modules and override
      * all styles.
      */
-    theme?: Partial<Record<ThemeKey, string | CSSProperties>>;
+    theme?: Partial<{[key in ThemeKey]: string | CSSProperties}>;
     /**
      * Tells how much to wait in milliseconds until consider the download to be
      * slow.
@@ -114,5 +120,5 @@ declare module '@endiliey/react-ideal-image' {
     width: number;
   }
 
-  export default function IdealImage(props: ImageProps): JSX.Element;
+  export default function IdealImage(props: ImageProps): ReactNode;
 }

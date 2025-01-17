@@ -14,8 +14,7 @@ declare module '@docusaurus/plugin-ideal-image' {
     /**
      * Specify all widths you want to use; if a specified size exceeds the
      * original image's width, the latter will be used (i.e. images won't be
-     * scaled up). You may also declare a default sizes array in the loader
-     * options in your webpack.config.js.
+     * scaled up).
      */
     sizes?: number[];
     /**
@@ -25,16 +24,17 @@ declare module '@docusaurus/plugin-ideal-image' {
      */
     size?: number;
     /**
-     * As an alternative to manually specifying sizes, you can specify min, max
-     * and steps, and the sizes will be generated for you.
+     * As an alternative to manually specifying `sizes`, you can specify `min`,
+     * `max` and `steps`, and the `sizes` will be generated for you.
      */
     min?: number;
     /**
-     * See min above
+     * @see {@link PluginOptions.min}
      */
     max?: number;
     /**
-     * Configure the number of images generated between min and max (inclusive)
+     * Configure the number of images generated between `min` and `max`
+     * (inclusive)
      */
     steps?: number;
     /**
@@ -42,14 +42,17 @@ declare module '@docusaurus/plugin-ideal-image' {
      */
     quality?: number;
     /**
-     * Just use regular images in dev mode
+     * You can test ideal image behavior in dev mode by setting this to `false`.
+     * Tip: use network throttling in your browser to simulate slow networks.
      */
     disableInDev?: boolean;
   };
+
+  export type Options = Partial<PluginOptions>;
 }
 
 declare module '@theme/IdealImage' {
-  import type {ComponentProps} from 'react';
+  import type {ComponentProps, ReactNode} from 'react';
 
   export type SrcType = {
     width: number;
@@ -69,5 +72,5 @@ declare module '@theme/IdealImage' {
   export interface Props extends ComponentProps<'img'> {
     readonly img: {default: string} | {src: SrcImage; preSrc: string} | string;
   }
-  export default function IdealImage(props: Props): JSX.Element;
+  export default function IdealImage(props: Props): ReactNode;
 }

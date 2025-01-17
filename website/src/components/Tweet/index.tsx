@@ -9,6 +9,7 @@ import React, {type ReactNode} from 'react';
 
 import clsx from 'clsx';
 
+import Link from '@docusaurus/Link';
 import styles from './styles.module.css';
 
 export interface Props {
@@ -16,8 +17,8 @@ export interface Props {
   handle: string;
   name: string;
   content: ReactNode;
-  avatar: string;
   date: string;
+  githubUsername: string;
 }
 
 export default function Tweet({
@@ -25,9 +26,9 @@ export default function Tweet({
   handle,
   name,
   content,
-  avatar,
   date,
-}: Props): JSX.Element {
+  githubUsername,
+}: Props): ReactNode {
   return (
     <div className={clsx('card', styles.tweet)}>
       <div className="card__header">
@@ -35,24 +36,24 @@ export default function Tweet({
           <img
             alt={name}
             className="avatar__photo"
-            src={avatar}
+            src={`https://unavatar.io/x/${handle}?fallback=https://github.com/${githubUsername}.png`}
             width="48"
             height="48"
             loading="lazy"
           />
-          <div className="avatar__intro">
-            <div className={styles.tweet}>
-              <div>
-                <strong>{name}</strong>{' '}
-                <span className={styles.tweetMeta}>@{handle}</span>
-              </div>
-            </div>
-            <div className="margin-bottom--sm">{content}</div>
-            <a className={clsx(styles.tweetMeta, styles.tweetDate)} href={url}>
-              {date}
-            </a>
+          <div className={clsx('avatar__intro', styles.tweetMeta)}>
+            <strong className="avatar__name">{name}</strong>
+            <span>@{handle}</span>
           </div>
         </div>
+      </div>
+
+      <div className={clsx('card__body', styles.tweet)}>{content}</div>
+
+      <div className="card__footer">
+        <Link className={clsx(styles.tweetMeta, styles.tweetDate)} to={url}>
+          {date}
+        </Link>
       </div>
     </div>
   );

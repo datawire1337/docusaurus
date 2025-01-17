@@ -19,15 +19,14 @@ export type ColorState = {
   shades: Shades;
 };
 
-export type Shades = Record<
-  string,
-  {
+export type Shades = {
+  [cssVar: string]: {
     adjustment: number;
     adjustmentInput: string;
     displayOrder: number;
     codeOrder: number;
-  }
->;
+  };
+};
 export const COLOR_SHADES: Shades = {
   '--ifm-color-primary': {
     adjustment: 0,
@@ -86,12 +85,14 @@ export const darkStorage = createStorageSlot('ifm-theme-colors-dark', {
   persistence: 'sessionStorage',
 });
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export function getAdjustedColors(shades: Shades, baseColor: string) {
+export function getAdjustedColors(
+  shades: Shades,
+  baseColor: string,
+): (Shades[string] & {variableName: string; hex: string})[] {
   return Object.keys(shades).map((shade) => ({
-    ...shades[shade],
+    ...shades[shade]!,
     variableName: shade,
-    hex: Color(baseColor).darken(shades[shade].adjustment).hex(),
+    hex: Color(baseColor).darken(shades[shade]!.adjustment).hex(),
   }));
 }
 
@@ -100,7 +101,7 @@ export function updateDOMColors(
   isDarkTheme: boolean,
 ): void {
   const styleSheet = Array.from(document.styleSheets).find((item) =>
-    item.href?.match(/styles(?:\.[0-9a-f]+)?\.css/),
+    item.href?.match(/styles(?:\.[\da-f]+)?\.css/),
   )!;
   const rules = Array.from(styleSheet.cssRules) as CSSStyleRule[];
   // The rule that looks the most like definition for custom theme colors

@@ -5,6 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+import {jest} from '@jest/globals';
+import path from 'path';
 import {
   isNameTooLong,
   shortName,
@@ -13,11 +15,11 @@ import {
   aliasedSitePath,
   toMessageRelativeFilePath,
   addTrailingPathSeparator,
+  aliasedSitePathToRelativePath,
 } from '../pathUtils';
-import path from 'path';
 
 describe('isNameTooLong', () => {
-  test('behaves correctly', () => {
+  it('works', () => {
     const asserts = {
       '': false,
       'foo-bar-096': false,
@@ -30,27 +32,30 @@ describe('isNameTooLong', () => {
         true,
       'foo-bar-foo-bar-foo-bar-foo-bar-foo-bar-foo-bar-foo-bar-foo-bar-foo-bar-foo-bar-foo-bar-foo-bar-foo-bar-foo-bar-foo-bar-foo-bar-foo-bar-foo-bar-foo-bar-foo-bar-foo-bar-foo-bar-foo-bar-foo-bar-foo-bar-foo-bar-foo-bar-foo-bar-foo-bar-test-1-test-2-787':
         true,
-      // Every Hanzi is three bytes
+      // Every Han zi is three bytes
       字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字:
         {apfs: false, xfs: true},
     };
     const oldProcessPlatform = process.platform;
     Object.defineProperty(process, 'platform', {value: 'darwin'});
-    Object.keys(asserts).forEach((file) => {
+    (Object.keys(asserts) as (keyof typeof asserts)[]).forEach((file) => {
+      const expected = asserts[file];
       expect(isNameTooLong(file)).toBe(
-        typeof asserts[file] === 'boolean' ? asserts[file] : asserts[file].apfs,
+        typeof expected === 'boolean' ? expected : expected.apfs,
       );
     });
     Object.defineProperty(process, 'platform', {value: 'win32'});
-    Object.keys(asserts).forEach((file) => {
+    (Object.keys(asserts) as (keyof typeof asserts)[]).forEach((file) => {
+      const expected = asserts[file];
       expect(isNameTooLong(file)).toBe(
-        typeof asserts[file] === 'boolean' ? asserts[file] : asserts[file].apfs,
+        typeof expected === 'boolean' ? expected : expected.apfs,
       );
     });
     Object.defineProperty(process, 'platform', {value: 'android'});
-    Object.keys(asserts).forEach((file) => {
+    (Object.keys(asserts) as (keyof typeof asserts)[]).forEach((file) => {
+      const expected = asserts[file];
       expect(isNameTooLong(file)).toBe(
-        typeof asserts[file] === 'boolean' ? asserts[file] : asserts[file].xfs,
+        typeof expected === 'boolean' ? expected : expected.xfs,
       );
     });
     Object.defineProperty(process, 'platform', {value: oldProcessPlatform});
@@ -58,7 +63,7 @@ describe('isNameTooLong', () => {
 });
 
 describe('shortName', () => {
-  test('works', () => {
+  it('works', () => {
     const asserts = {
       '': '',
       'foo-bar': 'foo-bar',
@@ -78,21 +83,24 @@ describe('shortName', () => {
     };
     const oldProcessPlatform = process.platform;
     Object.defineProperty(process, 'platform', {value: 'darwin'});
-    Object.keys(asserts).forEach((file) => {
+    (Object.keys(asserts) as (keyof typeof asserts)[]).forEach((file) => {
+      const expected = asserts[file];
       expect(shortName(file)).toBe(
-        typeof asserts[file] === 'string' ? asserts[file] : asserts[file].apfs,
+        typeof expected === 'string' ? expected : expected.apfs,
       );
     });
     Object.defineProperty(process, 'platform', {value: 'win32'});
-    Object.keys(asserts).forEach((file) => {
+    (Object.keys(asserts) as (keyof typeof asserts)[]).forEach((file) => {
+      const expected = asserts[file];
       expect(shortName(file)).toBe(
-        typeof asserts[file] === 'string' ? asserts[file] : asserts[file].apfs,
+        typeof expected === 'string' ? expected : expected.apfs,
       );
     });
     Object.defineProperty(process, 'platform', {value: 'android'});
-    Object.keys(asserts).forEach((file) => {
+    (Object.keys(asserts) as (keyof typeof asserts)[]).forEach((file) => {
+      const expected = asserts[file];
       expect(shortName(file)).toBe(
-        typeof asserts[file] === 'string' ? asserts[file] : asserts[file].xfs,
+        typeof expected === 'string' ? expected : expected.xfs,
       );
     });
     Object.defineProperty(process, 'platform', {value: oldProcessPlatform});
@@ -104,76 +112,101 @@ describe('shortName', () => {
   const VERY_LONG_PATH = `/${`x`.repeat(256)}/`;
   const VERY_LONG_PATH_NON_LATIN = `/${`あ`.repeat(255)}/`;
 
-  test('Truncates long paths correctly', () => {
+  it('truncates long paths correctly', () => {
     const truncatedPathLatin = shortName(VERY_LONG_PATH);
     const truncatedPathNonLatin = shortName(VERY_LONG_PATH_NON_LATIN);
     expect(truncatedPathLatin.length).toBeLessThanOrEqual(255);
     expect(truncatedPathNonLatin.length).toBeLessThanOrEqual(255);
   });
 
-  test('Does not truncate short paths', () => {
+  it('does not truncate short paths', () => {
     const truncatedPath = shortName(SHORT_PATH);
     expect(truncatedPath).toEqual(SHORT_PATH);
   });
 });
 
-test('toMessageRelativeFilePath', () => {
-  jest
-    .spyOn(process, 'cwd')
-    .mockImplementationOnce(() => path.join(__dirname, '..'));
-  expect(toMessageRelativeFilePath(path.join(__dirname, 'foo/bar.js'))).toEqual(
-    '__tests__/foo/bar.js',
-  );
-});
-
-test('escapePath', () => {
-  const asserts: Record<string, string> = {
-    'c:/aaaa\\bbbb': 'c:/aaaa\\\\bbbb',
-    'c:\\aaaa\\bbbb\\★': 'c:\\\\aaaa\\\\bbbb\\\\★',
-    '\\\\?\\c:\\aaaa\\bbbb': '\\\\\\\\?\\\\c:\\\\aaaa\\\\bbbb',
-    'c:\\aaaa\\bbbb': 'c:\\\\aaaa\\\\bbbb',
-    'foo\\bar': 'foo\\\\bar',
-    'foo\\bar/lol': 'foo\\\\bar/lol',
-    'website\\docs/**/*.{md,mdx}': 'website\\\\docs/**/*.{md,mdx}',
-  };
-  Object.keys(asserts).forEach((file) => {
-    expect(escapePath(file)).toBe(asserts[file]);
-  });
-});
-
-test('posixPath', () => {
-  const asserts: Record<string, string> = {
-    'c:/aaaa\\bbbb': 'c:/aaaa/bbbb',
-    'c:\\aaaa\\bbbb\\★': 'c:\\aaaa\\bbbb\\★',
-    '\\\\?\\c:\\aaaa\\bbbb': '\\\\?\\c:\\aaaa\\bbbb',
-    'c:\\aaaa\\bbbb': 'c:/aaaa/bbbb',
-    'foo\\bar': 'foo/bar',
-    'foo\\bar/lol': 'foo/bar/lol',
-    'website\\docs/**/*.{md,mdx}': 'website/docs/**/*.{md,mdx}',
-  };
-  Object.keys(asserts).forEach((file) => {
-    expect(posixPath(file)).toBe(asserts[file]);
-  });
-});
-
-test('aliasedSitePath', () => {
-  const asserts: Record<string, string> = {
-    'user/website/docs/asd.md': '@site/docs/asd.md',
-    'user/website/versioned_docs/foo/bar.md': '@site/versioned_docs/foo/bar.md',
-    'user/docs/test.md': '@site/../docs/test.md',
-  };
-  Object.keys(asserts).forEach((file) => {
-    expect(posixPath(aliasedSitePath(file, 'user/website'))).toBe(
-      asserts[file],
+describe('toMessageRelativeFilePath', () => {
+  it('works', () => {
+    jest
+      .spyOn(process, 'cwd')
+      .mockImplementationOnce(() => path.join(__dirname, '..'));
+    expect(toMessageRelativeFilePath(path.join(__dirname, 'foo/bar.js'))).toBe(
+      '__tests__/foo/bar.js',
     );
   });
 });
 
-test('addTrailingPathSeparator', () => {
-  expect(addTrailingPathSeparator('foo')).toEqual(
-    process.platform === 'win32' ? 'foo\\' : 'foo/',
-  );
-  expect(addTrailingPathSeparator('foo/')).toEqual(
-    process.platform === 'win32' ? 'foo\\' : 'foo/',
-  );
+describe('escapePath', () => {
+  it('works', () => {
+    const asserts: {[key: string]: string} = {
+      'c:/aaaa\\bbbb': 'c:/aaaa\\\\bbbb',
+      'c:\\aaaa\\bbbb\\★': 'c:\\\\aaaa\\\\bbbb\\\\★',
+      '\\\\?\\c:\\aaaa\\bbbb': '\\\\\\\\?\\\\c:\\\\aaaa\\\\bbbb',
+      'c:\\aaaa\\bbbb': 'c:\\\\aaaa\\\\bbbb',
+      'foo\\bar': 'foo\\\\bar',
+      'foo\\bar/lol': 'foo\\\\bar/lol',
+      'website\\docs/**/*.{md,mdx}': 'website\\\\docs/**/*.{md,mdx}',
+    };
+    Object.keys(asserts).forEach((file) => {
+      expect(escapePath(file)).toBe(asserts[file]);
+    });
+  });
+});
+
+describe('posixPath', () => {
+  it('works', () => {
+    const asserts: {[key: string]: string} = {
+      'c:/aaaa\\bbbb': 'c:/aaaa/bbbb',
+      'c:\\aaaa\\bbbb\\★': 'c:/aaaa/bbbb/★',
+      '\\\\?\\c:\\aaaa\\bbbb': '\\\\?\\c:\\aaaa\\bbbb',
+      'c:\\aaaa\\bbbb': 'c:/aaaa/bbbb',
+      'foo\\bar': 'foo/bar',
+      'foo\\bar/lol': 'foo/bar/lol',
+      'website\\docs/**/*.{md,mdx}': 'website/docs/**/*.{md,mdx}',
+    };
+    Object.keys(asserts).forEach((file) => {
+      expect(posixPath(file)).toBe(asserts[file]);
+    });
+  });
+});
+
+describe('aliasedSitePath', () => {
+  it('works', () => {
+    const asserts: {[key: string]: string} = {
+      'user/website/docs/asd.md': '@site/docs/asd.md',
+      'user/website/versioned_docs/foo/bar.md':
+        '@site/versioned_docs/foo/bar.md',
+      'user/docs/test.md': '@site/../docs/test.md',
+    };
+    Object.keys(asserts).forEach((file) => {
+      expect(posixPath(aliasedSitePath(file, 'user/website'))).toBe(
+        asserts[file],
+      );
+    });
+  });
+});
+
+describe('aliasedSitePathToRelativePath', () => {
+  it('works', () => {
+    expect(aliasedSitePathToRelativePath('@site/site/relative/path')).toBe(
+      'site/relative/path',
+    );
+  });
+
+  it('is fail-fast', () => {
+    expect(() => aliasedSitePathToRelativePath('/site/relative/path')).toThrow(
+      /Unexpected, filePath is not site-aliased: \/site\/relative\/path/,
+    );
+  });
+});
+
+describe('addTrailingPathSeparator', () => {
+  it('works', () => {
+    expect(addTrailingPathSeparator('foo')).toEqual(
+      process.platform === 'win32' ? 'foo\\' : 'foo/',
+    );
+    expect(addTrailingPathSeparator('foo/')).toEqual(
+      process.platform === 'win32' ? 'foo\\' : 'foo/',
+    );
+  });
 });

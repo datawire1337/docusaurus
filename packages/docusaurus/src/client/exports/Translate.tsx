@@ -5,12 +5,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import type {ReactNode} from 'react';
+import React, {type ReactNode} from 'react';
 import {interpolate, type InterpolateValues} from '@docusaurus/Interpolate';
-import type {TranslateParam, TranslateProps} from '@docusaurus/Translate';
-
 // Can't read it from context, due to exposing imperative API
 import codeTranslations from '@generated/codeTranslations';
+import type {TranslateParam, TranslateProps} from '@docusaurus/Translate';
 
 function getLocalizedMessage({
   id,
@@ -25,7 +24,7 @@ function getLocalizedMessage({
     );
   }
 
-  return codeTranslations[(id ?? message)!] ?? message ?? id;
+  return codeTranslations[(id ?? message)!] ?? message ?? id!;
 }
 
 // Imperative translation API is useful for some edge-cases:
@@ -55,5 +54,5 @@ export default function Translate<Str extends string>({
   }
 
   const localizedMessage: string = getLocalizedMessage({message: children, id});
-  return interpolate(localizedMessage, values);
+  return <>{interpolate(localizedMessage, values)}</>;
 }

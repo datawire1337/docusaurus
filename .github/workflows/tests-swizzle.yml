@@ -4,8 +4,16 @@ on:
   pull_request:
     branches:
       - main
+      - docusaurus-v**
     paths:
       - packages/**
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   test:
@@ -17,14 +25,15 @@ jobs:
         action: ['eject', 'wrap']
         variant: ['js', 'ts']
     steps:
-      - uses: actions/checkout@v2
-      - name: Use Node.js
-        uses: actions/setup-node@v3
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - name: Set up Node LTS
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
         with:
-          node-version: 14
+          node-version: lts/*
           cache: yarn
       - name: Installation
-        run: yarn
+        run: yarn || yarn || yarn
 
       # Swizzle all the theme components
       - name: Swizzle (${{matrix.action}} - ${{matrix.variant}})
@@ -34,4 +43,4 @@ jobs:
         run: yarn build:website:fast
       # Ensure swizzled site still typechecks
       - name: TypeCheck website
-        run: yarn workspace website typecheck
+        run: yarn workspace website typecheck --project tsconfig.skipLibCheck.json

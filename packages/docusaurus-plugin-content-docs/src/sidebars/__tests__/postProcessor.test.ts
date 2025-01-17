@@ -5,10 +5,13 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import {postProcessSidebars} from '../postProcessor';
+import {
+  postProcessSidebars,
+  type SidebarPostProcessorParams,
+} from '../postProcessor';
 
 describe('postProcess', () => {
-  test('transforms category without subitems', () => {
+  it('transforms category without subitems', () => {
     const processedSidebar = postProcessSidebars(
       {
         sidebar: [
@@ -34,26 +37,12 @@ describe('postProcess', () => {
       },
       {
         sidebarOptions: {sidebarCollapsed: true, sidebarCollapsible: true},
-        version: {versionPath: 'version'},
-      },
+        version: {path: 'version'},
+        drafts: [],
+      } as unknown as SidebarPostProcessorParams,
     );
 
-    expect(processedSidebar).toMatchInlineSnapshot(`
-      Object {
-        "sidebar": Array [
-          Object {
-            "href": "version/generated/permalink",
-            "label": "Category",
-            "type": "link",
-          },
-          Object {
-            "id": "doc ID",
-            "label": "Category 2",
-            "type": "doc",
-          },
-        ],
-      }
-    `);
+    expect(processedSidebar).toMatchSnapshot();
 
     expect(() => {
       postProcessSidebars(
@@ -68,15 +57,16 @@ describe('postProcess', () => {
         },
         {
           sidebarOptions: {sidebarCollapsed: true, sidebarCollapsible: true},
-          version: {versionPath: 'version'},
-        },
+          version: {path: 'version'},
+          drafts: [],
+        } as unknown as SidebarPostProcessorParams,
       );
     }).toThrowErrorMatchingInlineSnapshot(
       `"Sidebar category Bad category has neither any subitem nor a link. This makes this item not able to link to anything."`,
     );
   });
 
-  test('corrects collapsed state inconsistencies', () => {
+  it('corrects collapsed state inconsistencies', () => {
     expect(
       postProcessSidebars(
         {
@@ -93,28 +83,11 @@ describe('postProcess', () => {
 
         {
           sidebarOptions: {sidebarCollapsed: true, sidebarCollapsible: true},
-          version: {versionPath: 'version'},
-        },
+          version: {path: 'version'},
+          drafts: [],
+        } as unknown as SidebarPostProcessorParams,
       ),
-    ).toMatchInlineSnapshot(`
-      Object {
-        "sidebar": Array [
-          Object {
-            "collapsed": false,
-            "collapsible": false,
-            "items": Array [
-              Object {
-                "id": "foo",
-                "type": "doc",
-              },
-            ],
-            "label": "Category",
-            "link": undefined,
-            "type": "category",
-          },
-        ],
-      }
-    `);
+    ).toMatchSnapshot();
 
     expect(
       postProcessSidebars(
@@ -131,28 +104,11 @@ describe('postProcess', () => {
 
         {
           sidebarOptions: {sidebarCollapsed: false, sidebarCollapsible: false},
-          version: {versionPath: 'version'},
-        },
+          version: {path: 'version'},
+          drafts: [],
+        } as unknown as SidebarPostProcessorParams,
       ),
-    ).toMatchInlineSnapshot(`
-      Object {
-        "sidebar": Array [
-          Object {
-            "collapsed": false,
-            "collapsible": false,
-            "items": Array [
-              Object {
-                "id": "foo",
-                "type": "doc",
-              },
-            ],
-            "label": "Category",
-            "link": undefined,
-            "type": "category",
-          },
-        ],
-      }
-    `);
+    ).toMatchSnapshot();
 
     expect(
       postProcessSidebars(
@@ -168,27 +124,40 @@ describe('postProcess', () => {
 
         {
           sidebarOptions: {sidebarCollapsed: true, sidebarCollapsible: false},
-          version: {versionPath: 'version'},
-        },
+          version: {path: 'version'},
+          drafts: [],
+        } as unknown as SidebarPostProcessorParams,
       ),
-    ).toMatchInlineSnapshot(`
-      Object {
-        "sidebar": Array [
-          Object {
-            "collapsed": false,
-            "collapsible": false,
-            "items": Array [
-              Object {
-                "id": "foo",
-                "type": "doc",
+    ).toMatchSnapshot();
+  });
+
+  it('filters draft items', () => {
+    expect(
+      postProcessSidebars(
+        {
+          sidebar: [
+            {
+              type: 'category',
+              label: 'Category',
+              items: [{type: 'doc', id: 'foo'}],
+            },
+            {
+              type: 'category',
+              label: 'Category',
+              link: {
+                type: 'doc',
+                id: 'another',
               },
-            ],
-            "label": "Category",
-            "link": undefined,
-            "type": "category",
-          },
-        ],
-      }
-    `);
+              items: [{type: 'doc', id: 'foo'}],
+            },
+          ],
+        },
+        {
+          sidebarOptions: {sidebarCollapsed: true, sidebarCollapsible: true},
+          version: {path: 'version'},
+          drafts: [{id: 'foo'}],
+        } as unknown as SidebarPostProcessorParams,
+      ),
+    ).toMatchSnapshot();
   });
 });

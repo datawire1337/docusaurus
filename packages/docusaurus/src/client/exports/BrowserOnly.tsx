@@ -5,18 +5,13 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import React, {isValidElement} from 'react';
+import React, {isValidElement, type ReactNode} from 'react';
 import useIsBrowser from '@docusaurus/useIsBrowser';
+import type {Props} from '@docusaurus/BrowserOnly';
 
 // Similar comp to the one described here:
 // https://www.joshwcomeau.com/react/the-perils-of-rehydration/#abstractions
-export default function BrowserOnly({
-  children,
-  fallback,
-}: {
-  children: () => JSX.Element;
-  fallback?: JSX.Element;
-}): JSX.Element | null {
+export default function BrowserOnly({children, fallback}: Props): ReactNode {
   const isBrowser = useIsBrowser();
 
   if (isBrowser) {
@@ -27,8 +22,8 @@ export default function BrowserOnly({
       throw new Error(`Docusaurus error: The children of <BrowserOnly> must be a "render function", e.g. <BrowserOnly>{() => <span>{window.location.href}</span>}</BrowserOnly>.
 Current type: ${isValidElement(children) ? 'React element' : typeof children}`);
     }
-    return <>{children()}</>;
+    return <>{children?.()}</>;
   }
 
-  return fallback || null;
+  return fallback ?? null;
 }

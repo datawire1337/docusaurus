@@ -8,15 +8,20 @@
 import path from 'path';
 import fs from 'fs-extra';
 import _ from 'lodash';
+import logger from '@docusaurus/logger';
+import {
+  getPluginI18nPath,
+  toMessageRelativeFilePath,
+  CODE_TRANSLATIONS_FILE_NAME,
+} from '@docusaurus/utils';
+import {Joi} from '@docusaurus/utils-validation';
 import type {
   TranslationFileContent,
   TranslationFile,
-  TranslationMessage,
+  CodeTranslations,
   InitializedPlugin,
+  LoadedPlugin,
 } from '@docusaurus/types';
-import {getPluginI18nPath, toMessageRelativeFilePath} from '@docusaurus/utils';
-import {Joi} from '@docusaurus/utils-validation';
-import logger from '@docusaurus/logger';
 
 export type WriteTranslationsOptions = {
   override?: boolean;
@@ -24,8 +29,7 @@ export type WriteTranslationsOptions = {
 };
 
 type TranslationContext = {
-  siteDir: string;
-  locale: string;
+  localizationDir: string;
 };
 
 const TranslationFileContentSchema = Joi.object<TranslationFileContent>()
@@ -38,7 +42,7 @@ const TranslationFileContentSchema = Joi.object<TranslationFileContent>()
   )
   .required();
 
-export function ensureTranslationFileContent(
+function ensureTranslationFileContent(
   content: unknown,
 ): asserts content is TranslationFileContent {
   Joi.attempt(content, TranslationFileContentSchema, {
@@ -48,12 +52,12 @@ export function ensureTranslationFileContent(
   });
 }
 
-export async function readTranslationFileContent(
+async function readTranslationFileContent(
   filePath: string,
 ): Promise<TranslationFileContent | undefined> {
   if (await fs.pathExists(filePath)) {
     try {
-      const content = JSON.parse(await fs.readFile(filePath, 'utf8'));
+      const content: unknown = await fs.readJSON(filePath);
       ensureTranslationFileContent(content);
       return content;
     } catch (err) {
@@ -89,7 +93,7 @@ function mergeTranslationFileContent({
         message: options.override
           ? message
           : existingContent[key]?.message ?? message,
-        description, // description
+        description,
       };
     },
   );
@@ -97,7 +101,7 @@ function mergeTranslationFileContent({
   return result;
 }
 
-export async function writeTranslationFileContent({
+async function writeTranslationFileContent({
   filePath,
   content: newContent,
   options = {},
@@ -131,25 +135,15 @@ Maybe you should remove them? ${unknownKeys}`;
     } translations will be written at path=${toMessageRelativeFilePath(
       filePath,
     )}.`;
-    await fs.ensureDir(path.dirname(filePath));
-    await fs.writeFile(filePath, `${JSON.stringify(mergedContent, null, 2)}\n`);
+    await fs.outputFile(
+      filePath,
+      `${JSON.stringify(mergedContent, null, 2)}\n`,
+    );
   }
 }
 
-// should we make this configurable?
-export function getTranslationsDirPath(context: TranslationContext): string {
-  return path.resolve(path.join(context.siteDir, `i18n`));
-}
-export function getTranslationsLocaleDirPath(
-  context: TranslationContext,
-): string {
-  return path.join(getTranslationsDirPath(context), context.locale);
-}
-
-export function getCodeTranslationsFilePath(
-  context: TranslationContext,
-): string {
-  return path.join(getTranslationsLocaleDirPath(context), 'code.json');
+function getCodeTranslationsFilePath(context: TranslationContext): string {
+  return path.join(context.localizationDir, CODE_TRANSLATIONS_FILE_NAME);
 }
 
 export async function readCodeTranslationFileContent(
@@ -182,17 +176,15 @@ function addTranslationFileExtension(translationFilePath: string) {
 }
 
 function getPluginTranslationFilePath({
-  siteDir,
+  localizationDir,
   plugin,
-  locale,
   translationFilePath,
 }: TranslationContext & {
   plugin: InitializedPlugin;
   translationFilePath: string;
 }): string {
   const dirPath = getPluginI18nPath({
-    siteDir,
-    locale,
+    localizationDir,
     pluginName: plugin.name,
     pluginId: plugin.options.id,
   });
@@ -201,9 +193,8 @@ function getPluginTranslationFilePath({
 }
 
 export async function writePluginTranslations({
-  siteDir,
+  localizationDir,
   plugin,
-  locale,
   translationFile,
   options,
 }: TranslationContext & {
@@ -213,8 +204,7 @@ export async function writePluginTranslations({
 }): Promise<void> {
   const filePath = getPluginTranslationFilePath({
     plugin,
-    siteDir,
-    locale,
+    localizationDir,
     translationFilePath: translationFile.path,
   });
   await writeTranslationFileContent({
@@ -225,9 +215,8 @@ export async function writePluginTranslations({
 }
 
 export async function localizePluginTranslationFile({
-  siteDir,
+  localizationDir,
   plugin,
-  locale,
   translationFile,
 }: TranslationContext & {
   plugin: InitializedPlugin;
@@ -235,15 +224,14 @@ export async function localizePluginTranslationFile({
 }): Promise<TranslationFile> {
   const filePath = getPluginTranslationFilePath({
     plugin,
-    siteDir,
-    locale,
+    localizationDir,
     translationFilePath: translationFile.path,
   });
 
   const localizedContent = await readTranslationFileContent(filePath);
 
   if (localizedContent) {
-    // localized messages "override" default unlocalized messages
+    // Localized messages "override" default unlocalized messages
     return {
       path: translationFile.path,
       content: {
@@ -255,26 +243,42 @@ export async function localizePluginTranslationFile({
   return translationFile;
 }
 
-export async function getPluginsDefaultCodeTranslationMessages(
+export function mergeCodeTranslations(
+  codeTranslations: CodeTranslations[],
+): CodeTranslations {
+  return codeTranslations.reduce(
+    (allCodeTranslations, current) => ({
+      ...allCodeTranslations,
+      ...current,
+    }),
+    {},
+  );
+}
+
+export async function loadPluginsDefaultCodeTranslationMessages(
   plugins: InitializedPlugin[],
-): Promise<Record<string, string>> {
+): Promise<CodeTranslations> {
   const pluginsMessages = await Promise.all(
     plugins.map((plugin) => plugin.getDefaultCodeTranslationMessages?.() ?? {}),
   );
+  return mergeCodeTranslations(pluginsMessages);
+}
 
-  return pluginsMessages.reduce(
-    (allMessages, pluginMessages) => ({...allMessages, ...pluginMessages}),
-    {},
-  );
+export function getPluginsDefaultCodeTranslations({
+  plugins,
+}: {
+  plugins: LoadedPlugin[];
+}): CodeTranslations {
+  return mergeCodeTranslations(plugins.map((p) => p.defaultCodeTranslations));
 }
 
 export function applyDefaultCodeTranslations({
   extractedCodeTranslations,
   defaultCodeMessages,
 }: {
-  extractedCodeTranslations: Record<string, TranslationMessage>;
-  defaultCodeMessages: Record<string, string>;
-}): Record<string, TranslationMessage> {
+  extractedCodeTranslations: TranslationFileContent;
+  defaultCodeMessages: CodeTranslations;
+}): TranslationFileContent {
   const unusedDefaultCodeMessages = _.difference(
     Object.keys(defaultCodeMessages),
     Object.keys(extractedCodeTranslations),
@@ -291,4 +295,16 @@ Please report this Docusaurus issue. name=${unusedDefaultCodeMessages}`;
       message: defaultCodeMessages[messageId] ?? messageTranslation.message,
     }),
   );
+}
+
+export async function loadSiteCodeTranslations({
+  localizationDir,
+}: {
+  localizationDir: string;
+}): Promise<CodeTranslations> {
+  const codeTranslationFileContent =
+    (await readCodeTranslationFileContent({localizationDir})) ?? {};
+
+  // We only need key->message for code translations
+  return _.mapValues(codeTranslationFileContent, (value) => value.message);
 }

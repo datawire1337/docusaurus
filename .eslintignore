@@ -1,21 +1,24 @@
 __fixtures__
+__mocks__
 dist
 node_modules
 .yarn
+.history
 build
 coverage
 jest.config.js
 jest.transform.js
+jest/vendor
 examples/
 
 packages/lqip-loader/lib/
 packages/docusaurus/lib/
 packages/docusaurus-*/lib/*
-packages/docusaurus-*/lib-next/
+packages/eslint-plugin/lib/
 packages/stylelint-copyright/lib/
-copyUntypedFiles.mjs
 
 packages/create-docusaurus/lib/*
-packages/create-docusaurus/templates/facebook/.eslintrc.js
+packages/create-docusaurus/templates/facebook
 
 website/_dogfooding/_swizzle_theme_tests
+website/_dogfooding/_asset-tests/badSyntax.js
