@@ -1385,9 +1385,9 @@
     yauzl "^3.1.0"
 
 "@crowdin/crowdin-api-client@^1.29.5":
-  version "1.29.5"
-  resolved "https://registry.yarnpkg.com/@crowdin/crowdin-api-client/-/crowdin-api-client-1.29.5.tgz#59c90afcd33c559bef134a7e7b96ade4ba4b8781"
-  integrity sha512-T5SJVLz7rHH1TtxYfQyaU4aLRfenFfL84U/Hb3egfN0sY0jMjI0Slu6ujr4ZLDyOXxCZB5QEp9DH8d+O++7aYw==
+  version "1.54.0"
+  resolved "https://registry.yarnpkg.com/@crowdin/crowdin-api-client/-/crowdin-api-client-1.54.0.tgz#50097a527d9d71e16e17e74bb56bfd8c3147e941"
+  integrity sha512-mFAjlVOa8m6rzUY2tVZuNGYRMXEBw3fALux4jbKZclH4y7gp22fTQXBgdguH1DLAs/ZDXfTx0KEbXkON32D7pA==
   dependencies:
     axios "^1"
 
