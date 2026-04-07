@@ -12,11 +12,8 @@ apfs
 appinstalled
 Applanga
 applescript
-architecting
 atrule
 Autoconverted
-Autogen
-autogen
 autogenerating
 autohide
 Autolinks
@@ -49,7 +46,6 @@ corejs
 Couriol
 creativecommons
 Csapo
-Csvg
 Dabit
 dabit
 Dagre
@@ -82,12 +78,9 @@ Endilie
 endilie
 endiliey
 ERRNAMETOOLONG
-evaluable
 externalwaiting
 failfast
-Fargate
 Fienny
-flac
 Flightcontrol
 Flightcontrol's
 forwardable
@@ -159,8 +152,6 @@ Massoud
 mathjax
 maxlynch
 maxresdefault
-MDAST
-mdast
 mdwn
 MDXA
 MDXAST
@@ -198,7 +189,6 @@ noicon
 nojekyll
 noninteractive
 npmjs
-Nuxt
 opensearch
 opensearchdescription
 opensource
@@ -214,8 +204,6 @@ ozaki
 ozakione
 O’Shannessy
 paas
-Pagefind
-pagefind
 Palenight
 palenight
 Paletton
@@ -224,7 +212,6 @@ Paraiso
 paraiso
 pathinfo
 paularmstrong
-perfetto
 pftrace
 philpl
 Pipeable
@@ -235,7 +222,6 @@ plushies
 posthog
 precached
 precaching
-preconfigured
 prerendered
 printfn
 producthunt
@@ -322,7 +308,6 @@ sunsetting
 Supabase
 supabase
 superproject
-svgs
 swizzlable
 Sébastien
 Tagkey
