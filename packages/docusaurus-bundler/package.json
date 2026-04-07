@@ -29,7 +29,7 @@
     "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^6.11.0",
     "css-minimizer-webpack-plugin": "^5.0.1",
-    "cssnano": "^6.1.2",
+    "cssnano": "^7.1.2",
     "file-loader": "^6.2.0",
     "html-minifier-terser": "^7.2.0",
     "mini-css-extract-plugin": "^2.9.2",
