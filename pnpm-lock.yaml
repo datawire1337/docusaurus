@@ -224,8 +224,8 @@ importers:
         specifier: 3.10.1
         version: link:../docusaurus-logger
       commander:
-        specifier: ^5.1.0
-        version: 5.1.0
+        specifier: ^15.0.0
+        version: 15.0.0
       cross-spawn:
         specifier: ^7.0.6
         version: 7.0.6
@@ -371,8 +371,8 @@ importers:
         specifier: ^1.1.0
         version: 1.2.0
       commander:
-        specifier: ^5.1.0
-        version: 5.1.0
+        specifier: ^15.0.0
+        version: 15.0.0
       core-js:
         specifier: ^3.31.1
         version: 3.49.0
@@ -1051,8 +1051,8 @@ importers:
         specifier: ^2.3.0
         version: 2.3.4
       commander:
-        specifier: ^5.1.0
-        version: 5.1.0
+        specifier: ^15.0.0
+        version: 15.0.0
       picomatch:
         specifier: ^2.3.1
         version: 2.3.2
@@ -1879,8 +1879,8 @@ importers:
         specifier: 19.2.14
         version: 19.2.14
       commander:
-        specifier: ^5.1.0
-        version: 5.1.0
+        specifier: ^15.0.0
+        version: 15.0.0
       joi:
         specifier: ^18.1.2
         version: 18.2.3
@@ -7258,15 +7258,15 @@ packages:
     resolution: {integrity: sha512-H+y0Jo/T1RZ9qPP4Eh1pkcQcLRglraJaSLoyOtHxu6AapkjWVCy2Sit1QQ4x3Dng8qDlSsZEet7g5Pq06MvTgw==}
     engines: {node: '>=20'}
 
+  commander@15.0.0:
+    resolution: {integrity: sha512-z67u4ZhzCL/Tydu1lJARtEZYWbWaN7oYLHbsuzocr6y4N6WZAagG3RQ4FW61V1/0+jImpj293XfrcYnd1qxtPg==}
+    engines: {node: '>=22.12.0'}
+
   commander@2.20.3:
     resolution: {integrity: sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ==}
 
   commander@4.1.1:
     resolution: {integrity: sha512-NOKm8xhkzAjzFx8B2v5OAHT+u5pRQc2UCa2Vq9jYL/31o2wi9mxBA7LIFs3sV5VSC49z6pEhfbMULvShKj26WA==}
-    engines: {node: '>= 6'}
-
-  commander@5.1.0:
-    resolution: {integrity: sha512-P0CysNDQ7rtVw4QIQtm+MRxV66vKFSvlsQvGYXZWR3qFU0jlMKHZZZgw8e+8DSah4UDKMqnknRDQz+xuQXQ/Zg==}
     engines: {node: '>= 6'}
 
   commander@7.2.0:
@@ -19213,11 +19213,11 @@ snapshots:
 
   commander@14.0.3: {}
 
+  commander@15.0.0: {}
+
   commander@2.20.3: {}
 
   commander@4.1.1: {}
-
-  commander@5.1.0: {}
 
   commander@7.2.0: {}
 
