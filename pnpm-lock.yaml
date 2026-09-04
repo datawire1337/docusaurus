@@ -805,8 +805,8 @@ importers:
         specifier: ^4.0.2
         version: 4.0.4
       '@types/stringify-object':
-        specifier: ^3.3.1
-        version: 3.3.1
+        specifier: ^4.0.5
+        version: 4.0.5
       '@types/unist':
         specifier: ^3.0.3
         version: 3.0.3
@@ -6030,8 +6030,8 @@ packages:
   '@types/source-list-map@0.1.6':
     resolution: {integrity: sha512-5JcVt1u5HDmlXkwOD2nslZVllBBc7HDuOICfiZah2Z0is8M8g+ddAEawbmd3VjedfDHBzxCaXLs07QEmb7y54g==}
 
-  '@types/stringify-object@3.3.1':
-    resolution: {integrity: sha512-bpCBW0O+QrMLNFBY/+rkZtGzcYRmc2aTD8qYHOMNUmednqETfEZtFcGEA11l9xqbIeiT1PgXG0eq3zqayVzZSQ==}
+  '@types/stringify-object@4.0.5':
+    resolution: {integrity: sha512-TzX5V+njkbJ8iJ0mrj+Vqveep/1JBH4SSA3J2wYrE1eUrOhdsjTBCb0kao4EquSQ8KgPpqY4zSVP2vCPWKBElg==}
 
   '@types/supports-color@10.0.0':
     resolution: {integrity: sha512-Kpp/hhA8/pcxqBBKmOCIgvwCOJAI5y6TWTHhhqnB6KmuYlKtixKgN/Z7VzhShdgONe2jYREnTQbsrb3E0nt/OQ==}
@@ -17813,7 +17813,7 @@ snapshots:
 
   '@types/source-list-map@0.1.6': {}
 
-  '@types/stringify-object@3.3.1': {}
+  '@types/stringify-object@4.0.5': {}
 
   '@types/supports-color@10.0.0':
     dependencies:
